@@ -1,15 +1,37 @@
-subroutine generate_dataset() ! генерация обучающей и тестовой выборок
+program lab1
+    implicit none
+    
+    ! инициализация переменных, объявление констант
     integer, parameter :: elements_edu = 100, elements_test = 1000, fields = 5
     integer, parameter :: max_floors = 50, max_rooms = 5, max_square = 300, distincts = 3
-    integer :: i
+
+    integer :: i, j, k ! итераторы для циклов
     real :: f, r, s, d
+
     integer :: apartments(elements_edu, fields)
     integer :: test_apartments(elements_test, fields)
-    real, parameter :: base_price_per_sqm = 50000.00
+
+    real, parameter :: base_price_per_sqm = 100.00
     real, parameter :: floorK = 0.2
     real, parameter :: roomK = 0.8
     real, parameter :: distinctK(3) = [0.6, 1.0, 1.8]
 
+    integer :: k1 = max_square / max_floors, k2 = max_square / max_rooms
+    integer::  k3 = 1, k4 = max_square / distincts 
+
+    integer :: KNN = 13
+    integer :: dist_temp, id_temp
+    integer :: euclidean_distance(elements_edu)
+    integer :: manhattan_distance(elements_edu)
+    integer :: id_euclidean(elements_edu)
+    integer :: id_manhattan(elements_edu)
+
+    integer :: euclidean_predict_price = 0, manhattan_predict_price = 0
+    real :: euclidean_accuracy(elements_test), manhattan_accuracy(elements_test)
+
+    ! генерация обучающей выборки
+    call random_seed()
+    
     do i = 1, elements_edu
         call random_number(f)
         apartments(i, 1) = int(f * max_floors + 1)
@@ -30,10 +52,11 @@ subroutine generate_dataset() ! генерация обучающей и тес�
     print *, 'Обучающая выборка:'
     print *, '      Этаж', '    Кол-во комнат', '   Площадь', '   Район ID', '  Стоимость'
 
-    do i = 1, elements_edu
+    do i = 1, elements_edu 
         print *, apartments(i, :)
     end do
 
+    ! генерация тестовой выборки
     do i = 1, elements_test
         call random_number(f)
         test_apartments(i, 1) = int(f * max_floors + 1)
@@ -51,20 +74,69 @@ subroutine generate_dataset() ! генерация обучающей и тес�
                                 test_apartments(i, 3) * base_price_per_sqm * distinctK(test_apartments(i, 4)))
     end do
 
-    print *, 'Тестовая выборка:'
-    print *, '       Этаж', '    Кол-во комнат', '   Площадь', '   Район ID', '  Реальная стоимость'
+    ! === ОДНОПОТОЧНАЯ РЕАЛИЗАЦИЯ АЛГОРИТМА KNN ===
+    
+    do i = 1, elements_test
+        do j = 1, elements_edu      
+            ! вычисление Евклидова расстояния
+            euclidean_distance(j) = int(sqrt(&
+            k1 * (real(test_apartments(i, 1) - apartments(j, 1)))**2 + &
+            k2 * (real(test_apartments(i, 2) - apartments(j, 2)))**2 + &
+            k3 * (real(test_apartments(i, 3) - apartments(j, 3)))**2 + &
+            k4 * (real(test_apartments(i, 4) - apartments(j, 4)))**2))
 
-    do i = 1, elements_test - 900
-        print *, test_apartments(i, :)
+            id_euclidean(j) = j
+
+            ! вычисление Манхеттенского расстояния
+            manhattan_distance(j) = int(&
+            k1 * abs(test_apartments(i, 1) - apartments(j, 1)) + &
+            k2 * abs(test_apartments(i, 2) - apartments(j, 2)) + &
+            k3 * abs(test_apartments(i, 3) - apartments(j, 3)) + &
+            k4 * abs(test_apartments(i, 4) - apartments(j, 4)))
+
+            id_manhattan(j) = j
+        end do
+
+        ! пузырьковая сортировка по расстоянию
+        do j = 1, elements_edu - 1
+            do k = j + 1, elements_edu
+                if (euclidean_distance(j) > euclidean_distance(k)) then
+                    dist_temp = euclidean_distance(j)
+                    euclidean_distance(j) = euclidean_distance(k)
+                    euclidean_distance(k) = dist_temp
+
+                    id_temp = id_euclidean(j)
+                    id_euclidean(j) = id_euclidean(k)
+                    id_euclidean(k) = id_temp
+                end if
+
+                if (manhattan_distance(j) > manhattan_distance(k)) then
+                    dist_temp = manhattan_distance(j)
+                    manhattan_distance(j) = manhattan_distance(k)
+                    manhattan_distance(k) = dist_temp
+
+                    id_temp = id_manhattan(j)
+                    id_manhattan(j) = id_manhattan(k)
+                    id_manhattan(k) = id_temp
+                end if
+            end do
+        end do
+
+        do j = 1, KNN
+            euclidean_predict_price = euclidean_predict_price + apartments(id_euclidean(j), 5)
+            manhattan_predict_price = manhattan_predict_price + apartments(id_manhattan(j), 5)
+        end do
+        euclidean_predict_price = euclidean_predict_price / KNN
+        manhattan_predict_price = manhattan_predict_price / KNN
+
+        euclidean_accuracy(j) = real(euclidean_predict_price)/test_apartments(j, 5)
+        manhattan_accuracy(j) = real(manhattan_predict_price)/test_apartments(j, 5)
+
+        print *, 'Тестовая выборка:'
+        print *, '       Этаж', '    Кол-во комнат', '   Площадь', '   Район ID',&
+         '  Реал. цена', '    Евклид', '     Точность', '        Манхеттен', '   Точность'
+        print *, test_apartments(i, :), euclidean_predict_price, euclidean_accuracy(j), &
+                                        manhattan_predict_price, manhattan_accuracy(j)
     end do
 
-end subroutine generate_dataset
-
-program lab1
-    implicit none
-    
-    ! однопоточная реализация алгоритма KNN
-    call random_seed()
-    call generate_dataset()
-    
 end program lab1

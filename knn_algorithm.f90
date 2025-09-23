@@ -1,6 +1,8 @@
 program lab1
+    use iso_fortran_env, only: real64
     implicit none
-    
+
+    real(real64) :: start_time, end_time, total_time
     ! инициализация переменных, объявление констант
     integer, parameter :: elements_edu = 100, elements_test = 1000, fields = 5
     integer, parameter :: max_floors = 50, max_rooms = 5, max_square = 300, distincts = 3
@@ -28,6 +30,8 @@ program lab1
 
     integer :: euclidean_predict_price = 0, manhattan_predict_price = 0
     real :: euclidean_accuracy(elements_test), manhattan_accuracy(elements_test)
+
+    call cpu_time(start_time)
 
     ! генерация обучающей выборки
     call random_seed()
@@ -138,5 +142,7 @@ program lab1
         print *, test_apartments(i, :), euclidean_predict_price, euclidean_accuracy(j), &
                                         manhattan_predict_price, manhattan_accuracy(j)
     end do
-
+    call cpu_time(end_time)
+    total_time = end_time - start_time
+    print *, 'Общее время выполнения: ', total_time, ' секунд'
 end program lab1

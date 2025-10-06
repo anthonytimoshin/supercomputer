@@ -4,7 +4,7 @@ program lab1
 
     real(real64) :: start_time, end_time, total_time
     ! инициализация переменных, объявление констант
-    integer, parameter :: elements_edu = 100, elements_test = 1000, fields = 5
+    integer, parameter :: elements_edu = 10000, elements_test = 100, fields = 5
     integer, parameter :: max_floors = 50, max_rooms = 5, max_square = 300, distincts = 3
 
     integer :: i, j, k ! итераторы для циклов
@@ -21,7 +21,7 @@ program lab1
     integer :: k1 = max_square / max_floors, k2 = max_square / max_rooms
     integer::  k3 = 1, k4 = max_square / distincts 
 
-    integer :: KNN = 13
+    integer :: KNN = 35
     integer :: dist_temp, id_temp
     integer :: euclidean_distance(elements_edu)
     integer :: manhattan_distance(elements_edu)
@@ -56,7 +56,7 @@ program lab1
     print *, 'Обучающая выборка:'
     print *, '      Этаж', '    Кол-во комнат', '   Площадь', '   Район ID', '  Стоимость'
 
-    do i = 1, elements_edu 
+    do i = 1, 10
         print *, apartments(i, :)
     end do
 
@@ -133,8 +133,8 @@ program lab1
         euclidean_predict_price = euclidean_predict_price / KNN
         manhattan_predict_price = manhattan_predict_price / KNN
 
-        euclidean_accuracy(j) = real(euclidean_predict_price)/test_apartments(j, 5)
-        manhattan_accuracy(j) = real(manhattan_predict_price)/test_apartments(j, 5)
+        euclidean_accuracy(j) = real(euclidean_predict_price)/test_apartments(i, 5)
+        manhattan_accuracy(j) = real(manhattan_predict_price)/test_apartments(i, 5)
 
         print *, 'Тестовая выборка:'
         print *, '       Этаж', '    Кол-во комнат', '   Площадь', '   Район ID',&

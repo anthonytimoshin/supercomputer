@@ -150,7 +150,6 @@ program lab1
         euclidean_accuracy(j) = real(euclidean_predict_price)/test_apartments(i, 5)
         manhattan_accuracy(j) = real(manhattan_predict_price)/test_apartments(i, 5)
 
-        !вот эту часть вынести в отдельный цикл
         !$OMP CRITICAL
         print *, 'Тестовая выборка:'
         print *, '       Этаж', '    Кол-во комнат', '   Площадь', '   Район ID',&

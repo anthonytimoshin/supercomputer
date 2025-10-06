@@ -32,7 +32,7 @@ program lab1
     integer :: euclidean_predict_price = 0, manhattan_predict_price = 0
     real :: euclidean_accuracy(elements_test), manhattan_accuracy(elements_test)
 
-    call cpu_time(start_time)
+    start_time = omp_get_wtime()
 
     ! генерация обучающей выборки
     call random_seed()
@@ -162,7 +162,7 @@ program lab1
     !$OMP END DO
     !$OMP END PARALLEL
 
-    call cpu_time(end_time)
+    end_time = omp_get_wtime()
     total_time = end_time - start_time
     print *, 'Общее время выполнения: ', total_time, ' секунд'
 end program lab1

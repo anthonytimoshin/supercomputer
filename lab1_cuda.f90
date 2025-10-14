@@ -171,52 +171,51 @@ program lab1
     print *, 'Общее время выполнения: ', total_time, ' секунд'
     print *, 'CUDA version'
 
-contains
-
-    attributes(global) subroutine compute_distances_kernel( &
-        apartments, test_apartments, &
-        euclidean_distance, manhattan_distance, &
-        id_euclidean, id_manhattan, &
-        n_apartments, n_fields, test_idx, k1, k2, k3, k4)
-        
-        integer, intent(in) :: apartments(n_apartments, n_fields)
-        integer, intent(in) :: test_apartments(n_apartments, n_fields)
-        integer, intent(out) :: euclidean_distance(n_apartments)
-        integer, intent(out) :: manhattan_distance(n_apartments)
-        integer, intent(out) :: id_euclidean(n_apartments)
-        integer, intent(out) :: id_manhattan(n_apartments)
-        integer, value :: n_apartments, n_fields, test_idx, k1, k2, k3, k4
-        
-        integer :: idx
-        real :: diff1, diff2, diff3, diff4
-        
-        idx = (blockIdx%x - 1) * blockDim%x + threadIdx%x
-        
-        if (idx <= n_apartments) then
-            ! Вычисление Евклидова расстояния
-            diff1 = real(test_apartments(test_idx, 1) - apartments(idx, 1))
-            diff2 = real(test_apartments(test_idx, 2) - apartments(idx, 2))
-            diff3 = real(test_apartments(test_idx, 3) - apartments(idx, 3))
-            diff4 = real(test_apartments(test_idx, 4) - apartments(idx, 4))
-            
-            euclidean_distance(idx) = int(sqrt( &
-                k1 * diff1**2 + &
-                k2 * diff2**2 + &
-                k3 * diff3**2 + &
-                k4 * diff4**2))
-            
-            ! Вычисление Манхеттенского расстояния
-            manhattan_distance(idx) = int( &
-                k1 * abs(diff1) + &
-                k2 * abs(diff2) + &
-                k3 * abs(diff3) + &
-                k4 * abs(diff4))
-            
-            ! Сохранение индексов
-            id_euclidean(idx) = idx
-            id_manhattan(idx) = idx
-        end if
-        
-    end subroutine compute_distances_kernel
-
 end program lab1
+
+! Отдельная subroutine вне program
+attributes(global) subroutine compute_distances_kernel( &
+    apartments, test_apartments, &
+    euclidean_distance, manhattan_distance, &
+    id_euclidean, id_manhattan, &
+    n_apartments, n_fields, test_idx, k1, k2, k3, k4)
+    
+    integer, intent(in) :: apartments(n_apartments, n_fields)
+    integer, intent(in) :: test_apartments(n_apartments, n_fields)
+    integer, intent(out) :: euclidean_distance(n_apartments)
+    integer, intent(out) :: manhattan_distance(n_apartments)
+    integer, intent(out) :: id_euclidean(n_apartments)
+    integer, intent(out) :: id_manhattan(n_apartments)
+    integer, value :: n_apartments, n_fields, test_idx, k1, k2, k3, k4
+    
+    integer :: idx
+    real :: diff1, diff2, diff3, diff4
+    
+    idx = (blockIdx%x - 1) * blockDim%x + threadIdx%x
+    
+    if (idx <= n_apartments) then
+        ! Вычисление Евклидова расстояния
+        diff1 = real(test_apartments(test_idx, 1) - apartments(idx, 1))
+        diff2 = real(test_apartments(test_idx, 2) - apartments(idx, 2))
+        diff3 = real(test_apartments(test_idx, 3) - apartments(idx, 3))
+        diff4 = real(test_apartments(test_idx, 4) - apartments(idx, 4))
+        
+        euclidean_distance(idx) = int(sqrt( &
+            k1 * diff1**2 + &
+            k2 * diff2**2 + &
+            k3 * diff3**2 + &
+            k4 * diff4**2))
+        
+        ! Вычисление Манхеттенского расстояния
+        manhattan_distance(idx) = int( &
+            k1 * abs(diff1) + &
+            k2 * abs(diff2) + &
+            k3 * abs(diff3) + &
+            k4 * abs(diff4))
+        
+        ! Сохранение индексов
+        id_euclidean(idx) = idx
+        id_manhattan(idx) = idx
+    end if
+    
+end subroutine compute_distances_kernel

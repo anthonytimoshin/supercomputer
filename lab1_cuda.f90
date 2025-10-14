@@ -21,9 +21,7 @@ program lab1
     real, parameter :: roomK = 0.8
     real, parameter :: distinctK(3) = [0.6, 1.0, 1.8]
 
-    integer :: k1 = max_square / max_floors, k2 = max_square / max_rooms
-    integer::  k3 = 1, k4 = max_square / distincts 
-
+    integer :: k1 = 50, k2 = 60, k3 = 1, k4 = 100
     integer :: KNN = 35
     integer :: dist_temp, id_temp
     
@@ -39,7 +37,7 @@ program lab1
     integer :: id_euclidean_h(elements_edu)
     integer :: id_manhattan_h(elements_edu)
 
-    integer :: euclidean_predict_price = 0, manhattan_predict_price = 0
+    integer :: euclidean_predict_price, manhattan_predict_price
     real :: euclidean_accuracy(elements_test), manhattan_accuracy(elements_test)
     
     ! CUDA variables
@@ -157,14 +155,15 @@ program lab1
         euclidean_predict_price = euclidean_predict_price / KNN
         manhattan_predict_price = manhattan_predict_price / KNN
 
-        euclidean_accuracy(i) = real(euclidean_predict_price)/test_apartments_h(i, 5)
-        manhattan_accuracy(i) = real(manhattan_predict_price)/test_apartments_h(i, 5)
+        euclidean_accuracy(i) = real(euclidean_predict_price) / real(test_apartments_h(i, 5))
+        manhattan_accuracy(i) = real(manhattan_predict_price) / real(test_apartments_h(i, 5))
 
         print *, 'Тестовая выборка ', i, ':'
         print *, '       Этаж', '    Кол-во комнат', '   Площадь', '   Район ID',&
          '  Реал. цена', '    Евклид', '     Точность', '        Манхеттен', '   Точность'
-        print *, test_apartments_h(i, :), euclidean_predict_price, euclidean_accuracy(i), &
-                                        manhattan_predict_price, manhattan_accuracy(i)
+        print *, test_apartments_h(i, 1:4), test_apartments_h(i, 5), &
+                euclidean_predict_price, euclidean_accuracy(i), &
+                manhattan_predict_price, manhattan_accuracy(i)
     end do
     
     call cpu_time(end_time)
@@ -181,14 +180,14 @@ contains
         n_apartments, n_fields, test_idx, k1, k2, k3, k4)
         
         integer, intent(in) :: apartments(n_apartments, n_fields)
-        integer, intent(in) :: test_apartments(*, n_fields)
+        integer, intent(in) :: test_apartments(n_apartments, n_fields)
         integer, intent(out) :: euclidean_distance(n_apartments)
         integer, intent(out) :: manhattan_distance(n_apartments)
         integer, intent(out) :: id_euclidean(n_apartments)
         integer, intent(out) :: id_manhattan(n_apartments)
         integer, value :: n_apartments, n_fields, test_idx, k1, k2, k3, k4
         
-        integer :: idx, i
+        integer :: idx
         real :: diff1, diff2, diff3, diff4
         
         idx = (blockIdx%x - 1) * blockDim%x + threadIdx%x
@@ -208,10 +207,10 @@ contains
             
             ! Вычисление Манхеттенского расстояния
             manhattan_distance(idx) = int( &
-                k1 * abs(test_apartments(test_idx, 1) - apartments(idx, 1)) + &
-                k2 * abs(test_apartments(test_idx, 2) - apartments(idx, 2)) + &
-                k3 * abs(test_apartments(test_idx, 3) - apartments(idx, 3)) + &
-                k4 * abs(test_apartments(test_idx, 4) - apartments(idx, 4)))
+                k1 * abs(diff1) + &
+                k2 * abs(diff2) + &
+                k3 * abs(diff3) + &
+                k4 * abs(diff4))
             
             ! Сохранение индексов
             id_euclidean(idx) = idx

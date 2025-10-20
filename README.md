@@ -1,6 +1,12 @@
 # supercomputer
 Laboratory works on the course Super EVM in the 5th semester of the MAI. Lecturer: Yuri Titov. Accepted by Dmitry Parfenyuk.
 
+run knn_algorithm.f90:
+```
+gfortran knn_algorithm.f90 -o knn_algorithm
+./knn_algorithm
+```
+
 run lab_mpi.f90:
 ```
 mpif90 -o lab_mpi lab_mpi.f90

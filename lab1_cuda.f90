@@ -26,9 +26,7 @@ program lab1_cuda
     real, parameter :: roomK = 0.8
     real, parameter :: distinctK(3) = [0.6, 1.0, 1.8]
 
-    integer :: k1 = max_square / max_floors, k2 = max_square / max_rooms
-    integer :: k3 = 1, k4 = max_square / distincts 
-
+    integer :: k1, k2, k3, k4
     integer :: KNN = 35
     integer :: euclidean_predict_price, manhattan_predict_price
     real :: euclidean_accuracy(elements_test), manhattan_accuracy(elements_test)
@@ -41,6 +39,12 @@ program lab1_cuda
     
     type(dim3) :: grid, block
     integer :: istat
+
+    ! Initialize constants
+    k1 = max_square / max_floors
+    k2 = max_square / max_rooms 
+    k3 = 1
+    k4 = max_square / distincts
 
     call cpu_time(start_time)
 
@@ -65,9 +69,9 @@ program lab1_cuda
     end do
 
     print *, 'Обучающая выборка:'
-    print *, '      Этаж', '    Кол-во комнат', '   Площадь', '   Район ID', '  Стоимость'
+    print *, '      Этаж    Кол-во комнат   Площадь   Район ID  Стоимость'
 
-    do i = 1, 10
+    do i = 1, 5
         print *, apartments(i, :)
     end do
 
@@ -93,18 +97,17 @@ program lab1_cuda
     apartments_d = apartments
     test_apartments_d = test_apartments
 
-    ! Настройка grid и block
-    block = dim3(256, 1, 1)
-    grid = dim3(ceiling(real(elements_edu)/block%x), 1, 1)
+    print *, 'Запуск KNN...'
 
-    print *, 'Тестовая выборка:'
-    print *, '       Этаж', '    Кол-во комнат', '   Площадь', '   Район ID',&
-     '  Реал. цена', '    Евклид', '     Точность', '        Манхеттен', '   Точность'
+    ! Настройка grid и block - УМЕНЬШИТЬ размер блока
+    block = dim3(128, 1, 1)  ! Уменьшено с 256 до 128
+    grid = dim3(ceiling(real(elements_edu)/real(block%x)), 1, 1)
 
     do i = 1, elements_test
         ! Инициализация индексов на GPU
         call init_indices<<<grid, block>>>(id_euclidean_d, id_manhattan_d, elements_edu)
         istat = cudaDeviceSynchronize()
+        if (istat /= 0) print *, 'Error in init_indices: ', istat
         
         ! Вычисление расстояний на GPU
         call compute_distances<<<grid, block>>>(test_apartments_d, apartments_d, &
@@ -112,6 +115,11 @@ program lab1_cuda
                                               id_euclidean_d, id_manhattan_d, &
                                               k1, k2, k3, k4, i, elements_edu)
         istat = cudaDeviceSynchronize()
+        if (istat /= 0) then
+            print *, 'CUDA error after kernel: ', istat
+            print *, 'Test apartment: ', test_apartments(i, 1:4)
+            exit
+        end if
 
         ! Копируем результаты обратно на CPU для сортировки
         euclidean_distance = euclidean_distance_d
@@ -119,7 +127,7 @@ program lab1_cuda
         id_euclidean = id_euclidean_d
         id_manhattan = id_manhattan_d
 
-        ! Сортировка на CPU (можно заменить на GPU сортировку для большей производительности)
+        ! Сортировка на CPU
         call bubble_sort(euclidean_distance, id_euclidean, elements_edu)
         call bubble_sort(manhattan_distance, id_manhattan, elements_edu)
 
@@ -138,8 +146,10 @@ program lab1_cuda
         euclidean_accuracy(i) = real(euclidean_predict_price)/test_apartments(i, 5)
         manhattan_accuracy(i) = real(manhattan_predict_price)/test_apartments(i, 5)
 
-        print *, test_apartments(i, :), euclidean_predict_price, euclidean_accuracy(i), &
-                                        manhattan_predict_price, manhattan_accuracy(i)
+        if (i <= 5) then  ! Выводим только первые 5 результатов
+            print *, 'Тест:', test_apartments(i, 1:4), 'Евклид:', euclidean_predict_price, &
+                    'Манхеттен:', manhattan_predict_price
+        end if
     end do
     
     call cpu_time(end_time)
@@ -164,7 +174,7 @@ contains
                                                    euclidean_dist, manhattan_dist, &
                                                    id_euclidean, id_manhattan, &
                                                    k1, k2, k3, k4, test_idx, n)
-        integer, device :: test_apt(elements_test, fields), apt(elements_edu, fields)
+        integer, device :: test_apt(elements_test, *), apt(elements_edu, *)
         integer, device :: euclidean_dist(*), manhattan_dist(*)
         integer, device :: id_euclidean(*), id_manhattan(*)
         integer, value :: k1, k2, k3, k4, test_idx, n

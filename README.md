@@ -8,15 +8,15 @@ gfortran knn_algorithm.f90 -o knn_algorithm
 ./knn_algorithm
 ```
 
-run lab_mpi.f90:
+run knn_mpi.f90:
 ```
-mpif90 -o lab_mpi lab_mpi.f90
-mpirun -np 4 ./lab_mpi
+mpif90 -o knn_mpi knn_mpi.f90
+mpirun -np 4 ./knn_mpi
 ```
 
-run lab_cuda.cuf:
+run knn_cuda.cuf:
 
-on Apple MacBook Pro M1 there are no available NVIDIA GPUs.  
+on Apple MacBook Pro M1 there are no available NVIDIA GPUs to run CUDA Fortran files.  
 So I have another solution. I rent virtual server [here](https://intelion.cloud) with:  
 NVIDIA Tesla A10 24GB;  
 18 vCPU;  
@@ -25,6 +25,6 @@ NVIDIA Tesla A10 24GB;
 Ubuntu 24.04 + CUDA 12.8.  
 
 ```
-nvfortran -g -O0 -acc -gpu=cc80,managed -Minfo=accel -o knn_cuda_debug knn_cuda.cuf
+nvfortran -acc -gpu=cc80 -cuda knn_cuda.cuf -o knn_cuda
 ./knn_cuda
 ```

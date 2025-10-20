@@ -8,10 +8,10 @@ gfortran knn_algorithm.f90 -o knn_algorithm
 ./knn_algorithm
 ```
 
-run knn_mpi.f90:
+run knn_openmp.f90:
 ```
-mpif90 -o knn_mpi knn_mpi.f90
-mpirun -np 4 ./knn_mpi
+gfortran -fopenmp knn_openmp.f90 -o knn_openmp
+./knn_openmp
 ```
 
 run knn_cuda.cuf:
@@ -27,4 +27,10 @@ Ubuntu 24.04 + CUDA 12.8.
 ```
 nvfortran -acc -gpu=cc80 -cuda knn_cuda.cuf -o knn_cuda
 ./knn_cuda
+```
+
+run knn_mpi.f90:
+```
+mpif90 -o knn_mpi knn_mpi.f90
+mpirun -np 4 ./knn_mpi
 ```

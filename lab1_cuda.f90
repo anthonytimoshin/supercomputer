@@ -151,7 +151,7 @@ end program lab1
 attributes(global) subroutine compute_distances(apart_d, test_a, eucl_d, manh_d, id_e, id_m, k1, k2, k3, k4, n)
     integer, value :: n, k1, k2, k3, k4
     integer, device :: apart_d(n, 5)
-    integer, value :: test_a(4)
+    integer :: test_a(4)
     integer, device :: eucl_d(n), manh_d(n), id_e(n), id_m(n)
     integer :: j
     real :: df1, df2, df3, df4

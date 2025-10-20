@@ -1,22 +1,30 @@
 program lab1
     use iso_fortran_env, only: real64
     use cudafor
+    
     implicit none
     real(real64) :: start_time, end_time, total_time
+    
     ! инициализация переменных, объявление констант
     integer, parameter :: elements_edu = 10000, elements_test = 100, fields = 5
     integer, parameter :: max_floors = 50, max_rooms = 5, max_square = 300, distincts = 3
+    
     integer :: i, j, k ! итераторы для циклов
     real :: f, r, s, d
+    
     integer :: apartments(elements_edu, fields)
     integer :: test_apartments(elements_test, fields)
+    
     real, parameter :: base_price_per_sqm = 100.00
     real, parameter :: floorK = 0.2
     real, parameter :: roomK = 0.8
     real, parameter :: distinctK(3) = [0.6, 1.0, 1.8]
+    
     integer :: k1 = max_square / max_floors, k2 = max_square / max_rooms
     integer:: k3 = 1, k4 = max_square / distincts
+    
     integer :: KNN = 35
+    
     integer :: dist_temp, id_temp
     integer :: euclidean_distance(elements_edu)
     integer :: manhattan_distance(elements_edu)
@@ -24,14 +32,17 @@ program lab1
     integer :: id_manhattan(elements_edu)
     integer :: euclidean_predict_price, manhattan_predict_price
     real :: euclidean_accuracy(elements_test), manhattan_accuracy(elements_test)
+    
     integer, device, allocatable :: apartments_d(:,:)
     integer, device :: test_apart(4)
     integer, device, allocatable :: euclidean_distance_d(:)
     integer, device, allocatable :: manhattan_distance_d(:)
     integer, device, allocatable :: id_euclidean_d(:)
     integer, device, allocatable :: id_manhattan_d(:)
+    
     type(dim3) :: threads, blocks
     integer :: istat
+    
     call cpu_time(start_time)
     ! генерация обучающей выборки
     call random_seed()
@@ -48,11 +59,14 @@ program lab1
         apartments(i, 5) = int(apartments(i, 1) * floorK * apartments(i, 2) * roomK * &
                            apartments(i, 3) * base_price_per_sqm * distinctK(apartments(i, 4)))
     end do
+    
     print *, 'Обучающая выборка:'
     print *, ' Этаж', ' Кол-во комнат', ' Площадь', ' Район ID', ' Стоимость'
+    
     do i = 1, 10
         print *, apartments(i, :)
     end do
+    
     ! генерация тестовой выборки
     do i = 1, elements_test
         call random_number(f)
@@ -81,7 +95,7 @@ program lab1
     threads = dim3(256, 1, 1)
     blocks = dim3((elements_edu + threads%x - 1) / threads%x, 1, 1)
 
-    ! === ОДНОПОТОЧНАЯ РЕАЛИЗАЦИЯ АЛГОРИТМА KNN НА CPU, НО С ПАРАЛЛЕЛЬНЫМ ВЫЧИСЛЕНИЕМ РАССТОЯНИЙ НА GPU ===
+    ! === ОДНОПОТОЧНАЯ РЕАЛИЗАЦИЯ АЛГОРИТМА KNN НА CPU С ПАРАЛЛЕЛЬНЫМ ВЫЧИСЛЕНИЕМ РАССТОЯНИЙ НА GPU ===
    
     do i = 1, elements_test
         ! Copy test apartment features to device

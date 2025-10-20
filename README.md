@@ -23,3 +23,8 @@ NVIDIA Tesla A10 24GB;
 32 GB DDR4 ECC;  
 256 GB NVMe Gen4;  
 Ubuntu 24.04 + CUDA 12.8.  
+
+```
+nvfortran -g -O0 -acc -gpu=cc80,managed -Minfo=accel -o knn_cuda_debug knn_cuda.cuf
+./knn_cuda
+```

@@ -1,5 +1,5 @@
-# supercomputer
-Laboratory works on the course Super EVM in the 5th semester of the MAI.  
+# supercomputers
+Laboratory works on the course supercomputers (parallel programming) in the 5th semester of the MAI.  
 Lecturer: Yuri Titov. Accepted by Dmitry Parfenyuk.
 
 run knn_algorithm.f90:

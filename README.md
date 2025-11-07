@@ -1,5 +1,5 @@
 # supercomputers
-Laboratory works on the course supercomputers (parallel programming) in the 5th semester of the MAI.  
+Laboratory works for the "Supercomputers (Parallel Programming)" course in the 5th semester at MAI.
 Lecturer: Yuri Titov.  
 Accepted by: Dmitry Parfenyuk.
 

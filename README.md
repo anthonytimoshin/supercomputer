@@ -1,7 +1,7 @@
 # supercomputers
 Laboratory works for the "Supercomputers (Parallel Programming)" course in the 5th semester at MAI.
 Lecturer: Yuri Titov.  
-Accepted by: Dmitry Parfenyuk.
+Accepted by: [Dmitry Parfenyuk](https://github.com/Lombeelo).
 
 run knn_algorithm.f90:
 ```
